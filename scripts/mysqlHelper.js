@@ -87,7 +87,12 @@ exports.findRecord = function(table, data, cb, context) {
 	pool.getConnection(function(err, conn) {
 		var qstr = "SELECT * FROM `" + DBNAME + "`.`" + table + "`";
 		if ( data ) {
-			qstr += " WHERE ?";
+			if ( typeof data === 'string' ) {
+				qstr += " WHERE " + data;
+				data = null;
+			} else {
+				qstr += " WHERE ?";
+			}
 		}
 		conn.query(qstr, data, function(err, rows, fields) {
 			conn.end();

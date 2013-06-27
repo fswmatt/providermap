@@ -17,56 +17,45 @@ var PROVIDERTABLE = msh.tables.provider;
 
 exports.getRegionList = function(req, res) {
 	// no parameters
-	msh.findRecord(REGIONTABLE, null, function(err, rows, fields) {
-		if ( !err ) {
-			rjh.returnSuccess(res, rows, "regions");
-		} else {
-			rjh.returnFailure(res, "error " + err);
-		}
-	});
+	execQueryApiReturn(res, REGIONTABLE, null, "regions");
 }
 
 
 exports.getProvidersInRegion = function(req, res) {
 	// get the parameters
 	var region = req.params.region;
-	msh.findRecord(PROVIDERTABLE, {region: region}, function(err, rows, fields) {
-		if ( !err ) {
-			rjh.returnSuccess(res, rows, "providers");
-		} else {
-			rjh.returnFailure(res, "error " + err);
-		}
-	});
+	execQueryApiReturn(res, PROVIDERTABLE, {region: region}, "providers");
 }
 
 
 exports.getProvidersInState = function(req, res) {
 	// get the parameters
 	var state = req.params.state;
-	msh.findRecord(PROVIDERTABLE, {state: state}, function(err, rows, fields) {
-		if ( !err ) {
-			rjh.returnSuccess(res, rows, "providers");
-		} else {
-			rjh.returnFailure(res, "error " + err);
-		}
-	});
+	execQueryApiReturn(res, PROVIDERTABLE, {state: state}, "providers");
 }
+
 
 exports.getProvidersInBox = function(req, res) {
 	// get the parameters
-	var north = req.params.north;
-	var west = req.params.west;
-	var south = req.params.south;
-	var east = req.params.east;
+	var clause = "lat < " + parseInt(req.params.north)
+			+ " AND lat > " + parseInt(req.params.south)
+			+ " AND lng > " + parseInt(req.params.west)
+			+ " AND lng < " + parseInt(req.params.east);
+	execQueryApiReturn(res, PROVIDERTABLE, clause, "providers");
 }
 
 
 exports.getProviderData = function(req, res) {
 	// get the parameters
 	var provider = req.params.provider;
-	msh.findRecord(PROVIDERTABLE, {med_id: provider}, function(err, rows, fields) {
+	execQueryApiReturn(res, PROVIDERTABLE, {med_id: provider}, "providers");
+}
+
+
+function execQueryApiReturn(res, table, data, title) {
+	msh.findRecord(table, data, function(err, rows, fields) {
 		if ( !err ) {
-			rjh.returnSuccess(res, rows, "providers");
+			rjh.returnSuccess(res, rows, title);
 		} else {
 			rjh.returnFailure(res, "error " + err);
 		}
