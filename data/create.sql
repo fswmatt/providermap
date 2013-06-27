@@ -12,6 +12,7 @@ CREATE TABLE `med_data`.`provider` (
 	`zip` INT NULL,
 	`lat` FLOAT NULL,
 	`lng` FLOAT NULL,
+	`loc_from_zip` char(1),
 	`region` INT NULL,
 	PRIMARY KEY (`id`),
 	UNIQUE INDEX `med_id_UNIQUE` (`med_id` ASC),
@@ -55,5 +56,20 @@ CREATE TABLE `med_data`.`items` (
 	INDEX (`provider`),
 	INDEX (`treatment`),
 	INDEX (`region`)
+)  ENGINE=MYISAM DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE `med_data`.`zip` (
+	`id` INT NOT NULL AUTO_INCREMENT,
+	`zipcode` INT NULL,
+	`city` VARCHAR(64) NULL,
+	`state` VARCHAR(2) NULL,
+	`lat` FLOAT NULL,
+	`lng` FLOAT NULL,
+	PRIMARY KEY (`id`),
+	UNIQUE INDEX `zipcode_UNIQUE` (`zipcode` ASC),
+	INDEX (`lat`),
+	INDEX (`lng`),
+	INDEX (`state`)
 )  ENGINE=MYISAM DEFAULT CHARSET=utf8;
 

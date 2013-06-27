@@ -2,25 +2,52 @@
  *	mysqlHelper.js
  */
 
-var util = require('util')
-	, _ = require('underscore')
-	, mysql = require('mysql')
-	, flowController = require('../scripts/flowController')
+var mysql = require('mysql')
 	;
 
 
-var pool  = mysql.createPool({ host: 'localhost'
+var connInfo = { host: 'localhost'
 	, user: 'root'
-});
+};
+var pool  = mysql.createPool(connInfo);
+var connection = mysql.createConnection(connInfo);
 
-var db = "med_data";
+
+var DBNAME = "med_data";
+
+exports.tables = { provider: "provider"
+	, items: "items"
+	, region: "region"
+	, treatment: "treatment"
+	, zip: "zip"
+};
+
+
+// add a record one at a time using the connection
+// if there's a cb call it so they can get the id, if not just log n deal
+exports.addRecordSerial = function(table, data, cb, context) {
+	if ( connection ) {
+		var qstr = "INSERT INTO `" + DBNAME + "`.`" + table + "` SET ?";
+		connection.query(qstr, data, function(err, result) {
+			if (err) {
+				console.log("q: " + qstr + ", err: " + err);
+				// what kind of error?  do we need to reconnect?
+			} else {
+				console.log("inserted record " + result.insertId + " into " + table);
+			}
+			if ( cb ) {
+				cb.call(context, err, result);
+			}
+		});
+	}
+}
 
 
 // add a record
 // if there's a cb call it so they can get the id, if not just log n deal
-exports.addRecord = function(table, data, cb) {
+exports.addRecord = function(table, data, cb, context) {
 	pool.getConnection(function(err, conn) {
-		var qstr = "INSERT INTO `" + db + "`.`" + table + "` SET ?";
+		var qstr = "INSERT INTO `" + DBNAME + "`.`" + table + "` SET ?";
 		conn.query(qstr, data, function(err, result) {
 			if (err) {
 				console.log("q: " + qstr + ", err: " + err);
@@ -29,16 +56,36 @@ exports.addRecord = function(table, data, cb) {
 			}
 			conn.end();
 			if ( cb ) {
-				cb (err, result);
+				cb.call(context, err, result);
 			}
 		});
 	});
 }
 
 
-exports.findRecord = function(table, data, cb) {
+// add multiple records at once
+// if there's a cb call it so they can get the id, if not just log n deal
+exports.bulkAdd = function(table, columns, data, cb, context) {
 	pool.getConnection(function(err, conn) {
-		var qstr = "SELECT * FROM `" + db + "`.`" + table + "`";
+		var qstr = "INSERT INTO `" + DBNAME + "`.`" + table + "` (" + columns + ") VALUES ?";
+		conn.query(qstr, data, function(err, result) {
+			if (err) {
+				console.log("q: " + qstr + ", err: " + err);
+			} else {
+				console.log("inserted record " + result.insertId + " into " + table);
+			}
+			conn.end();
+			if ( cb ) {
+				cb.call(context, err, result);
+			}
+		});
+	});
+}
+
+
+exports.findRecord = function(table, data, cb, context) {
+	pool.getConnection(function(err, conn) {
+		var qstr = "SELECT * FROM `" + DBNAME + "`.`" + table + "`";
 		if ( data ) {
 			qstr += " WHERE ?";
 		}
@@ -50,7 +97,28 @@ exports.findRecord = function(table, data, cb) {
 				console.log("found " + rows.length + " records.");
 			}
 			// callback with the results
-			cb(err, rows, fields);
+			cb.call(context, err, rows, fields);
 		});
 	});
 }
+
+
+// in case of connection error
+function handleDisconnect(connection) {
+	connection.on('error', function(err) {
+		if (!err.fatal) {
+			return;
+		}
+
+		if (err.code !== 'PROTOCOL_CONNECTION_LOST') {
+			console.log("Bigtime error - we're screwed.");
+			throw err;
+		}
+
+		console.log('Re-connecting lost connection: ' + err.stack);
+		connection = mysql.createConnection(connInfo);
+		handleDisconnect(connection);
+		connection.connect();
+	});
+}
+handleDisconnect(connection);

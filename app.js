@@ -9,6 +9,7 @@ var express = require('express')
 	, http = require('http')
 	, path = require('path')
 	, test = require('./tests/test')
+	, api = require('./scripts/api')
 	;
 
 var app = express();
@@ -32,6 +33,12 @@ if ('development' == app.get('env')) {
 app.get('/', routes.index);
 app.get('/test', test.test);
 
+// the api
+app.get('/api/v0.1/getRegions/', api.getRegionList);
+app.get('/api/v0.1/getProvidersInRegion/:region', api.getProvidersInRegion);
+app.get('/api/v0.1/getProvidersInState/:state', api.getProvidersInState);
+app.get('/api/v0.1/getProvidersInBox/:north/:west/:south/:east', api.getProvidersInBox);
+app.get('/api/v0.1/getProviderData/:provider', api.getProviderData);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));

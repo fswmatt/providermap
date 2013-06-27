@@ -6,12 +6,9 @@
 
 var _ = require('underscore')
 	, msh = require('../scripts/mysqlHelper')
+	, zipData = require('../scripts/zipData')
+	, fc = require('../scripts/flowController')
 	;
-
-
-exports.loadDb = function(req, res) {
-	console.log("loadDb");
-}
 
 
 // load the medicare data db
@@ -29,7 +26,7 @@ exports.loadFiles = function(index) {
 }
 
 
-function loadDb(filename, inpatient, index, cb) {
+function loadDb(filename, inpatient, i) {
 	var csv = require('csv');
 
 	// Read the contents of the postal codes file and pass to our mongo postal db:
@@ -47,7 +44,7 @@ function loadDb(filename, inpatient, index, cb) {
 		})
 		.on('end', function(count) {
 			console.log("Number of lines processed: " + count);
-			cb(index);
+			module.exports.loadFiles(i);
 		})
 		.on('error', function(error) {
 			console.error(error.message);
@@ -72,31 +69,36 @@ function saveItem(item, inpatient) {
 	// then the treatment
 	var t = item.treatment.split(" ");
 	var ti = parseInt(t[0])
-	var treatment = null;
 	var internalTi = inpatient ? 10000+ti : ti;
 	if ( -1 == _.indexOf(treatmentIdArray, internalTi) ) {
 		// not there, add it
+		treatmentIdArray.push(internalTi);
 		treatment = { med_id: ti
 			, name: item.treatment
 			, inpatient: inpatient
 			, internal_id: internalTi
 		};
-		treatmentIdArray.push(internalTi);
+		msh.addRecord("treatment", treatment);
 	}
 
 	// then the provider
-	var provider = null;
 	if ( -1 == _.indexOf(providerIdArray, item.pid) ) {
 		// not there, add it
-		provider = { med_id: item.pid
-			, name: item.pname
-			, street: item.pstreet
-			, city: item.pcity
-			, state: item.pstate
-			, zip: item.pzip
-			, region: regionId
-		};
 		providerIdArray.push(item.pid);
+		zipData.getZipInfo(item.pzip, function(zd) {
+			var provider = { med_id: item.pid
+				, name: item.pname
+				, street: item.pstreet
+				, city: item.pcity
+				, state: item.pstate
+				, zip: item.pzip
+				, lat: zd ? zd.lat : null
+				, lng: zd ? zd.lng : null
+				, loc_from_zip: 1
+				, region: regionId
+			};
+			msh.addRecord("provider", provider);
+		});
 	}
 
 	// and the items
@@ -108,12 +110,6 @@ function saveItem(item, inpatient) {
 		, paid: item.paid
 	};
 	msh.addRecord("items", info);
-	if ( treatment ) {
-		msh.addRecord("treatment", treatment);
-	}
-	if ( provider ) {
-		msh.addRecord("provider", provider);
-	}
 }
 
 
