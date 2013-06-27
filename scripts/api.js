@@ -14,6 +14,8 @@ var fc = require('../scripts/flowController')
 
 var REGIONTABLE = msh.tables.region;
 var PROVIDERTABLE = msh.tables.provider;
+var ITEMTABLE = msh.tables.items;
+var TREATMENTTABLE = msh.tables.treatment;
 
 exports.getRegionList = function(req, res) {
 	// no parameters
@@ -52,6 +54,16 @@ exports.getProviderData = function(req, res) {
 }
 
 
+exports.getProviderPricingInfo = function(req, res) {
+	// get the parameters
+	var provider = req.params.provider;
+	var query = "SELECT num, submitted, paid, inpatient, name FROM " + ITEMTABLE
+			+ " JOIN " + TREATMENTTABLE + " WHERE " + ITEMTABLE + ".treatment = "
+			+ TREATMENTTABLE + ".med_id AND provider = " + provider;
+	execStringQuery(res, query, "items");
+}
+
+
 function execQueryApiReturn(res, table, data, title) {
 	msh.findRecord(table, data, function(err, rows, fields) {
 		if ( !err ) {
@@ -61,3 +73,16 @@ function execQueryApiReturn(res, table, data, title) {
 		}
 	});
 }
+
+
+function execStringQuery(res, query, title) {
+	msh.directExec(query, function(err, rows, fields) {
+		if ( !err ) {
+			rjh.returnSuccess(res, rows, title);
+		} else {
+			rjh.returnFailure(res, "error " + err);
+		}
+	});
+}
+
+

@@ -14,12 +14,11 @@ var connection = mysql.createConnection(connInfo);
 
 
 var DBNAME = "med_data";
-
-exports.tables = { provider: "provider"
-	, items: "items"
-	, region: "region"
-	, treatment: "treatment"
-	, zip: "zip"
+exports.tables = { provider: DBNAME + ".provider"
+	, items: DBNAME + ".items"
+	, region: DBNAME + ".region"
+	, treatment: DBNAME + ".treatment"
+	, zip: DBNAME + ".zip"
 };
 
 
@@ -27,7 +26,7 @@ exports.tables = { provider: "provider"
 // if there's a cb call it so they can get the id, if not just log n deal
 exports.addRecordSerial = function(table, data, cb, context) {
 	if ( connection ) {
-		var qstr = "INSERT INTO `" + DBNAME + "`.`" + table + "` SET ?";
+		var qstr = "INSERT INTO " + table + " SET ?";
 		connection.query(qstr, data, function(err, result) {
 			if (err) {
 				console.log("q: " + qstr + ", err: " + err);
@@ -47,7 +46,7 @@ exports.addRecordSerial = function(table, data, cb, context) {
 // if there's a cb call it so they can get the id, if not just log n deal
 exports.addRecord = function(table, data, cb, context) {
 	pool.getConnection(function(err, conn) {
-		var qstr = "INSERT INTO `" + DBNAME + "`.`" + table + "` SET ?";
+		var qstr = "INSERT INTO " + table + " SET ?";
 		conn.query(qstr, data, function(err, result) {
 			if (err) {
 				console.log("q: " + qstr + ", err: " + err);
@@ -67,7 +66,7 @@ exports.addRecord = function(table, data, cb, context) {
 // if there's a cb call it so they can get the id, if not just log n deal
 exports.bulkAdd = function(table, columns, data, cb, context) {
 	pool.getConnection(function(err, conn) {
-		var qstr = "INSERT INTO `" + DBNAME + "`.`" + table + "` (" + columns + ") VALUES ?";
+		var qstr = "INSERT INTO " + table + " (" + columns + ") VALUES ?";
 		conn.query(qstr, data, function(err, result) {
 			if (err) {
 				console.log("q: " + qstr + ", err: " + err);
@@ -85,7 +84,7 @@ exports.bulkAdd = function(table, columns, data, cb, context) {
 
 exports.findRecord = function(table, data, cb, context) {
 	pool.getConnection(function(err, conn) {
-		var qstr = "SELECT * FROM `" + DBNAME + "`.`" + table + "`";
+		var qstr = "SELECT * FROM " + table + "";
 		if ( data ) {
 			if ( typeof data === 'string' ) {
 				qstr += " WHERE " + data;
@@ -95,6 +94,24 @@ exports.findRecord = function(table, data, cb, context) {
 			}
 		}
 		conn.query(qstr, data, function(err, rows, fields) {
+			conn.end();
+			if (err) {
+				console.log("q: " + qstr + ", err: " + err);
+			} else {
+				console.log("found " + rows.length + " records.");
+			}
+			// callback with the results
+			cb.call(context, err, rows, fields);
+		});
+	});
+}
+
+
+// directly execute a query
+//  DO NOT ABUSE OR MOCK
+exports.directExec = function(qstr, cb, context) {
+	pool.getConnection(function(err, conn) {
+		conn.query(qstr, null, function(err, rows, fields) {
 			conn.end();
 			if (err) {
 				console.log("q: " + qstr + ", err: " + err);
