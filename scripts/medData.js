@@ -18,12 +18,12 @@ exports.loadDb = function(req, res) {
 var inputFiles = [ {fn: "./data/Medicare_Inpatient_DRG100_FY2011.csv", inpatient: 1}
 			, {fn: "./data/Medicare_Outpatient_APC30_CY2011.csv", inpatient: 0} ];
 
-function loadFiles(index) {
+exports.loadFiles = function(index) {
 	if ( index >= inputFiles.length ) {
 		writeRegion();
 	} else {
 		loadDb(inputFiles[index].fn, inputFiles[index].inpatient, index+1, function(i) {
-			loadFiles(i);
+			module.exports.loadFiles(i);
 		});
 	}
 }
@@ -128,8 +128,4 @@ function writeRegion() {
 		msh.addRecord("region", region);
 	});
 }
-
-
-// if we're running this by itself...
-// loadFiles(0);
 
