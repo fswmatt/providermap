@@ -14,8 +14,10 @@ CREATE TABLE `med_data`.`provider` (
 	`lng` FLOAT NULL,
 	`region` INT NULL,
 	PRIMARY KEY (`id`),
-	UNIQUE INDEX `med_id_UNIQUE` (`med_id` ASC)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+	UNIQUE INDEX `med_id_UNIQUE` (`med_id` ASC),
+	INDEX (`region`),
+	INDEX (`state`)
+)  ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `med_data`.`region` (
@@ -24,8 +26,9 @@ CREATE TABLE `med_data`.`region` (
 	`name` varchar(128) NOT NULL,
 	`state` varchar(2) NOT NULL,
 	PRIMARY KEY (`id`),
-	UNIQUE KEY `med_id_UNIQUE` (`med_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+	UNIQUE KEY `med_id_UNIQUE` (`med_id`),
+	INDEX (`state`)
+)  ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `med_data`.`treatment` (
@@ -34,8 +37,10 @@ CREATE TABLE `med_data`.`treatment` (
 	`inpatient` char(1) NOT NULL,
 	`internal_id` INT NOT NULL,
 	`name` varchar(128) NOT NULL,
-	PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+	PRIMARY KEY (`id`),
+	INDEX (`med_id`,`inpatient`),
+	UNIQUE KEY `internal_id_UNIQUE` (`internal_id`)
+)  ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `med_data`.`items` (
@@ -46,6 +51,9 @@ CREATE TABLE `med_data`.`items` (
 	`num` INT NULL,
 	`submitted` FLOAT NULL,
 	`paid` FLOAT NULL,
-	PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+	PRIMARY KEY (`id`),
+	INDEX (`provider`),
+	INDEX (`treatment`),
+	INDEX (`region`)
+)  ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
