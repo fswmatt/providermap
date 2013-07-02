@@ -30,11 +30,14 @@ if ('development' == app.get('env')) {
   app.use(express.errorHandler());
 }
 
-app.get('/', routes.index);
+//app.get('/', routes.index);
+app.get('/', function(req, res) {
+	res.sendfile("./public/html/location.html");
+});
 app.get('/test', test.test);
 
 // the api
-app.get('/api/v0.1/getRegions/', api.getRegionList);
+app.get('/api/v0.1/getRegions', api.getRegionList);
 app.get('/api/v0.1/getProvidersInRegion/:region', api.getProvidersInRegion);
 app.get('/api/v0.1/getProvidersInState/:state', api.getProvidersInState);
 app.get('/api/v0.1/getProvidersInBox/:north/:west/:south/:east', api.getProvidersInBox);

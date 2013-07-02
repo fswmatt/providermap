@@ -1,8 +1,13 @@
-body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
-}
+html,
+body { margin:0; padding:0; height:100%;}
+#container { min-height:100%; position:relative;}
+#top-nav { position: absolute; top: 0; height: 25px; left:0; right:0;}
+#content-area { position: absolute; height: 100%; width: 100%; }
+#left-col { font-family:"Times New Roman", Times, serif; position: absolute; top: 25px; bottom: 0; width: 22%; left:0; overflow-y: auto; }
+#map-canvas { position: absolute; top: 25px; bottom: 0; width: 78%; right:0;}
+#mapinfo { opacity:0.75; position: absolute; text-align:center; bottom: 0; width: 78%; right:0; height: 1.1em;}
+#left-col h3 { font-size: 1em; font-weight:500; }
+#left-col p { font-size: 0.75em; font-weight:300; }
 
-a {
-  color: #00B7FF;
-}
+.ui-accordion .ui-accordion-header { padding: .25em .25em .25em 1.5em; }
+.ui-accordion .ui-accordion-content { padding: .25em 1em;}
