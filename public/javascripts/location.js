@@ -171,9 +171,9 @@ function addProviderInfo(providers) {
 						+ provider.street + "</br>" + provider.city + ", "
 						+ provider.state + "  " + provider.zip + "</p>";
 			// marker
-			addMarker( map, new google.maps.LatLng(provider.lat, provider.lng)
+			markers.push(addMarker( map, new google.maps.LatLng(provider.lat, provider.lng)
 				, provider.name, h, provider.med_id
-			);
+			));
 
 			// accordion
 			ah += h;
@@ -265,7 +265,7 @@ function onAccordionCreate(e, ui) {
 function showMarkerForId(id) {
 	if ( ! markerJustClicked ) {
 		closeInfoWindow();
-		var marker = _.findWhere(markers, {id: id});
+		var marker = _.findWhere(markers, {id: parseInt(id)});
 		if ( marker ) {
 			marker.info.open(map);
 			openInfoWindow = marker.info;
