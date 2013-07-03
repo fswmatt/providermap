@@ -13,7 +13,7 @@ var _ = require('underscore')
 
 // get zip data record from wherever's more convenient
 exports.getZipInfo = function(zip, cb, context) {
-	msh.findRecord("zip", {zipcode: zip}, function(err, rows) {
+	msh.findRecord(msh.tables.zip, {zipcode: zip}, function(err, rows) {
 		if ( !err && rows.length ) {
 			cb.call(context, rows[0]);
 		} else {
@@ -47,7 +47,7 @@ exports.loadZipData = function() {
 		.on('end', function(count) {
 			console.log("Number of zip codes processed: " + count);
 			zipArray.forEach(function(data) {
-				msh.addRecord('zip', data);
+				msh.addRecord(msh.tables.zip, data);
 			});
 		})
 		.on('error', function(error) {

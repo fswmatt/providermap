@@ -179,11 +179,10 @@ function addProviderInfo(providers) {
 			ah += h;
 		});
 		accordion = $("#left-col").html(ah).accordion({ heightStyle: "content"
-			, collapsible: true
-			, activate: onAccordionActivate
-			, create: onAccordionCreate
-	});
-
+				, collapsible: true
+				, activate: onAccordionActivate
+				, create: onAccordionCreate
+			});
 	}
 }
 
@@ -250,6 +249,11 @@ function onAccordionActivate(e, ui) {
 	if ( ui.newHeader && ui.newHeader[0] ) {
 		var newId = ui.newHeader[0].id;
 		showMarkerForId(newId);
+
+		// scroll the list.  TODO: make this #%$@ing thing work
+		if ($(ui.newHeader).offset() != null) {
+			$.scrollTo($(ui.newHeader).offset().top);
+		}
 	}
 }
 

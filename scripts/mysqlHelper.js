@@ -82,7 +82,13 @@ exports.bulkAdd = function(table, columns, data, cb, context) {
 }
 
 
+
 exports.findRecord = function(table, data, cb, context) {
+	module.exports.findRecordWithOrder(table, data, null, cb, context);
+}
+
+
+exports.findRecordWithOrder = function(table, data, order, cb, context) {
 	pool.getConnection(function(err, conn) {
 		var qstr = "SELECT * FROM " + table + "";
 		if ( data ) {
@@ -92,6 +98,9 @@ exports.findRecord = function(table, data, cb, context) {
 			} else {
 				qstr += " WHERE ?";
 			}
+		}
+		if ( order ) {
+			qstr += " ORDER BY " + order;
 		}
 		conn.query(qstr, data, function(err, rows, fields) {
 			conn.end();

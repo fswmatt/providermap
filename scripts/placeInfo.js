@@ -1,0 +1,35 @@
+/*
+ *	placeInfo.js
+ *
+ *	uses google places api to get place info for the provider
+ */
+
+var request = require('request')
+	, _ = require('underscore')
+	, flowController = require('../scripts/flowController')
+	;
+
+var googleKey = "AIzaSyCeonGX0eTAguv5yZiCa0Rh8IrpDbthvlk";
+
+
+exports.placeInfoFromProvider = function(provider, cb, context) {
+	var reqUri = "https://maps.googleapis.com/maps/api/place/textsearch/json"
+		+ "?query=" + encodeURIComponent(provider.name) + "+" + provider.zip
+		+ "&sensor=false"
+		+ "&key=" + googleKey;
+	console.log("Getting uri " + reqUri);
+	request({uri: reqUri, timeout: 10000}, function(err, response, body) {
+		if (null != err || null == response || response.statusCode !== 200 ) {
+			console.log("Google Places request for " + provider.name + " failed.");
+		} else {
+			// body's json.  make an object
+			var gPlace = JSON.parse(body);
+
+			// i'm relying on google being good and getting it on the first shot.
+			cb.call(context, gPlace.results[0].geometry.location.lat
+				, gPlace.results[0].geometry.location.lng);
+		}
+	});
+}
+
+

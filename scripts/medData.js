@@ -7,6 +7,7 @@
 var _ = require('underscore')
 	, msh = require('../scripts/mysqlHelper')
 	, zipData = require('../scripts/zipData')
+	, placeInfo = require('../scripts/placeInfo')
 	, fc = require('../scripts/flowController')
 	;
 
@@ -46,7 +47,8 @@ function loadDb(filename, inpatient, i) {
 		.on('record', function(data, index) {
 			// skip the first line, it's the column names
 			if ( index >= 1 ) {
-				saveItem(data, inpatient);
+//				saveItem(data, inpatient);
+				miniSave(data, inpatient);
 			}
 		})
 		.on('end', function(count) {
@@ -78,27 +80,29 @@ function fixCase(str) {
 }
 
 
-// provider id's and regions are universal
+// treatments, providers, and regions are universal
 var providerIdArray = new Array();
 var regionArray = new Array();
 var treatmentIdArray = new Array();
 
+
+// TODO: insert sorted instead of push().sort()
 function saveItem(item, inpatient) {
 	// first the region
-	var regionId = _.indexOf(regionArray, item.region);
+	var regionId = _.indexOf(regionArray, item.region, true);
 	if ( -1 == regionId ) {
 		// not there, add it at the end and set regionId to the index
 		regionId = regionArray.length;
-		regionArray.push(item.region);
+		regionArray.push(item.region).sort();
 	}
 
 	// then the treatment
 	var t = item.treatment.split(" ");
 	var ti = parseInt(t[0])
 	var internalTi = inpatient ? 10000+ti : ti;
-	if ( -1 == _.indexOf(treatmentIdArray, internalTi) ) {
+	if ( -1 == _.indexOf(treatmentIdArray, internalTi, true) ) {
 		// not there, add it
-		treatmentIdArray.push(internalTi);
+		treatmentIdArray.push(internalTi).sort();
 		treatment = { med_id: ti
 			, name: item.treatment
 			, inpatient: inpatient
@@ -108,9 +112,9 @@ function saveItem(item, inpatient) {
 	}
 
 	// then the provider
-	if ( -1 == _.indexOf(providerIdArray, item.pid) ) {
+	if ( -1 == _.indexOf(providerIdArray, item.pid, true) ) {
 		// not there, add it
-		providerIdArray.push(item.pid);
+		providerIdArray.push(item.pid).sort();
 		zipData.getZipInfo(item.pzip, function(zd) {
 			var provider = { med_id: item.pid
 				, name: item.pname
@@ -123,7 +127,14 @@ function saveItem(item, inpatient) {
 				, loc_from_zip: 1
 				, region: regionId
 			};
-			msh.addRecord("provider", provider);
+			placeInfo.placeInfoFromProvider(provider, function(info) {
+				if ( info ) {
+					provider.lat = info.xxxx;
+					provider.lng = info.lll;
+					loc_from_zip = 0;
+				}
+				msh.addRecord("provider", provider);
+			});
 		});
 	}
 
@@ -136,6 +147,27 @@ function saveItem(item, inpatient) {
 		, paid: item.paid
 	};
 	msh.addRecord("items", info);
+}
+
+function miniSave(item, inpatient) {
+		zipData.getZipInfo(item.pzip, function(zd) {
+			var provider = { med_id: item.pid
+				, name: item.pname
+				, street: item.pstreet
+				, city: item.pcity
+				, state: item.pstate
+				, zip: item.pzip
+				, lat: zd ? zd.lat : null
+				, lng: zd ? zd.lng : null
+				, loc_from_zip: 1
+			};
+			placeInfo.placeInfoFromProvider(provider, function(lat, lng) {
+				provider.lat = lat;
+				provider.lng = lng;
+				loc_from_zip = 0;
+//				msh.addRecord("provider", provider);
+			});
+		});
 }
 
 
