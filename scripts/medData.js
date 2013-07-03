@@ -36,6 +36,13 @@ function loadDb(filename, inpatient, i) {
 			, columns : [ "treatment", "pid", "pname", "pstreet", "pcity", "pstate",
 							"pzip", "region", "count", "submitted", "paid" ]
 			, trim: true })
+		.transform(function(data, index) {
+			data.treatment = fixCase(data.treatment);
+			data.pname = fixCase(data.pname);
+			data.pstreet = fixCase(data.pstreet);
+			data.pcity = fixCase(data.pcity);
+			return data;
+		})
 		.on('record', function(data, index) {
 			// skip the first line, it's the column names
 			if ( index >= 1 ) {
@@ -49,6 +56,25 @@ function loadDb(filename, inpatient, i) {
 		.on('error', function(error) {
 			console.error(error.message);
 		});
+}
+
+
+var leaveAlone = ["AMI", "CC", "CC/MCC", "C.D.E", "FX", "G.I.", "II", "III", "IV",
+		"MCC", "O.R.", "RD", "SNF", "ST", "W/O"].sort();
+function fixCase(str) {
+	var strs = str.split(" ");
+	var newStr = "";
+	strs.forEach(function(str, index) {
+		if ( -1 == _.indexOf(leaveAlone, str, true) ) {
+			// not there.  case it
+			newStr += str.charAt(0);
+			if ( str.length > 1 ) newStr += str.substr(1).toLowerCase();
+		} else {
+			newStr += str;
+		}
+		if ( index+1 < strs.length ) newStr += " ";
+	});
+	return newStr;
 }
 
 
