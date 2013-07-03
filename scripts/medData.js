@@ -81,27 +81,24 @@ function fixCase(str) {
 
 
 // treatments, providers, and regions are universal
-var providerIdArray = new Array();
 var providerArray = new Array();
-var regionIdArray = new Array();
 var regionArray = new Array();
-var treatmentIdArray = new Array();
 var treatmentArray = new Array();
 var itemArray = new Array();
 
 // TODO: insert sorted instead of push().sort()
 function saveItem(item, inpatient) {
 	// first the region
-	var regionId = _.indexOf(regionIdArray, item.region, true);
-	if ( -1 == regionId ) {
+	var region = _.find(regionArray, function(rgn) {
+		return rgn.med_id == item.region;
+	});
+	if ( !region ) {
 		// not there, add it at the end and set regionId to the index
-		regionIdArray.push(item.region);
-		regionIdArray.sort();
-		regionId = regionArray.length;
 		var rgn = item.region.split(" ");
-		var region = { med_id: regionId
+		region = { med_id: regionArray.length
 			, name: item.region
 			, state: rgn[0]
+			, procList: new Array()
 		};
 		regionArray.push(region);
 	}
@@ -110,9 +107,11 @@ function saveItem(item, inpatient) {
 	var t = item.treatment.split(" ");
 	var ti = parseInt(t[0])
 	var internalTi = inpatient ? 10000+ti : ti;
-	if ( -1 == _.indexOf(treatmentIdArray, internalTi) ) {
+	var treatment = _.find(treatmentArray, function(tmt) {
+		return tmt.internal_id == internalTi;
+	});
+	if ( !treatment ) {
 		// not there, add it
-		treatmentIdArray.push(internalTi);
 		treatment = { med_id: ti
 			, name: item.treatment
 			, inpatient: inpatient
@@ -122,11 +121,12 @@ function saveItem(item, inpatient) {
 	}
 
 	// then the provider
-	if ( -1 == _.indexOf(providerIdArray, item.pid, true) ) {
+	var provider = _.find(providerArray, function(prv) {
+		return item.pid == prv.med_id;
+	});
+	if ( !provider ) {
 		// not there, add it
-		providerIdArray.push(item.pid);
-		providerIdArray.sort();
-		var provider = { med_id: item.pid
+		provider = { med_id: item.pid
 			, name: item.pname
 			, street: item.pstreet
 			, city: item.pcity
@@ -140,15 +140,35 @@ function saveItem(item, inpatient) {
 		providerArray.push(provider);
 	}
 
-	// and the items
+	// the items
 	var info = { provider: item.pid
 		, treatment: internalTi
-		, region: regionId
+		, region: region.med_id
 		, num: item.count
 		, submitted: item.submitted
 		, paid: item.paid
 	};
 	itemArray.push(info);
+
+	// procedure list
+	var proc = _.find(region.procList, function(proc) {
+		return proc.internalTi == treatment.internalTi;
+	});
+	if ( proc ) {
+		// it's there.  add 'em
+		proc.totalNum += item.count;
+		proc.totalSubmitted += item.submitted * item.count;
+		proc.totalPaid += item.paid * item.count;
+	} else {
+		// new
+		proc = { internalTi: treatment.internalTi
+			, region: region.med_id
+			, totalNum: item.count
+			, totalSubmitted: item.submitted * item.count
+			, totalPaid: item.paid * item.count
+		};
+		region.procList.push(proc);
+	}
 }
 
 
@@ -160,7 +180,7 @@ function writeRegionTreatmentProvider() {
 		, [{callback: writeTreatment, paramsArray: treatmentArray, max: 20}]
 		, [{callback: writeProvider, paramsArray: providerArray, max: 9}]
 		, [{callback: writeItem, paramsArray: itemArray, max: 20}]
-		, [calculate]
+		, [{callback: writeProcs, paramsArray: procArray, max: 20}]
 		, [finish]
 	];
 	var fc = new flowController.FlowController({ model: model
@@ -170,8 +190,21 @@ function writeRegionTreatmentProvider() {
 }
 
 
+var procArray = new Array();
 function writeRegion(model, region) {
+	var procList = region.procList;
+	procList.forEach(function(proc) {procArray.push(proc)});
+	delete region.procList;
 	msh.addRecord(msh.tables.region, region, function() {
+		model._fc.done();
+	});
+}
+
+
+function writeProc(model, proc) {
+	proc['avgSubmitted'] = proc.totalSubmitted / proc.totalNum;
+	proc['avgPaid'] = proc.totalPaid / proc.totalNum;
+	msh.addRecord(msh.tables.proc, proc, function() {
 		model._fc.done();
 	});
 }
@@ -185,7 +218,7 @@ function writeTreatment(model, treatment) {
 
 
 function writeItem(model, item) {
-	msh.addRecord(msh.tables.items, item, function() {
+	msh.addRecord(msh.tables.item, item, function() {
 		model._fc.done();
 	});
 }
