@@ -59,6 +59,22 @@ CREATE TABLE `med_data`.`items` (
 )  ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 
+CREATE TABLE `med_data`.`proc` (
+	`id` INT NOT NULL AUTO_INCREMENT,
+	`treatment` INT NOT NULL,
+	`region` INT NOT NULL,
+	`totalNum` INT NULL,
+	`totalSubmitted` FLOAT NULL,
+	`totalPaid` FLOAT NULL,
+	`avgSubmitted` FLOAT NULL,
+	`avgPaid` FLOAT NULL,
+	PRIMARY KEY (`id`),
+	INDEX (`treatment`),
+	INDEX (`region`),
+	INDEX (`region`,`treatment`)
+)  ENGINE=MYISAM DEFAULT CHARSET=utf8;
+
+
 CREATE TABLE `med_data`.`zip` (
 	`id` INT NOT NULL AUTO_INCREMENT,
 	`zipcode` INT NULL,

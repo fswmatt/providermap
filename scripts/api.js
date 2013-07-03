@@ -15,12 +15,15 @@ var fc = require('../scripts/flowController')
 // db tables
 var REGIONTABLE = msh.tables.region;
 var PROVIDERTABLE = msh.tables.provider;
-var ITEMTABLE = msh.tables.items;
+var ITEMTABLE = msh.tables.item;
 var TREATMENTTABLE = msh.tables.treatment;
+var PROCTABLE = msh.tables.proc;
 
 var PROVIDERS = "providers";
 var ITEMS = "items";
 var REGIONS = "regions";
+var PROCEDURES = "procedures";
+
 
 exports.getRegionList = function(req, res) {
 	execQueryOrderedApiReturn(res, REGIONTABLE, null, "name", REGIONS);

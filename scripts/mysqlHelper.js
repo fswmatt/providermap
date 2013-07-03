@@ -15,10 +15,11 @@ var connection = mysql.createConnection(connInfo);
 
 var DBNAME = "med_data";
 exports.tables = { provider: DBNAME + ".provider"
-	, items: DBNAME + ".items"
+	, item: DBNAME + ".items"
 	, region: DBNAME + ".region"
 	, treatment: DBNAME + ".treatment"
 	, zip: DBNAME + ".zip"
+	, proc: DBNAME + ".proc"
 };
 
 
