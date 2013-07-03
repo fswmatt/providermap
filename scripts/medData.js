@@ -12,6 +12,10 @@ var _ = require('underscore')
 	;
 
 
+// for debugging
+var debugging = false;
+
+
 // load the medicare data db
 var inputFiles = [ {fn: "./data/Medicare_Inpatient_DRG100_FY2011.csv", inpatient: 1}
 			, {fn: "./data/Medicare_Outpatient_APC30_CY2011.csv", inpatient: 0} ];
@@ -39,9 +43,13 @@ function loadDb(filename, inpatient, i) {
 			, trim: true })
 		.transform(function(data, index) {
 			data.treatment = fixCase(data.treatment);
+			data.pid = parseInt(data.pid);
 			data.pname = fixCase(data.pname);
 			data.pstreet = fixCase(data.pstreet);
 			data.pcity = fixCase(data.pcity);
+			data.count = parseInt(data.count);
+			data.submitted = parseFloat(data.submitted);
+			data.paid = parseFloat(data.paid);
 			return data;
 		})
 		.on('record', function(data, index) {
@@ -90,7 +98,7 @@ var itemArray = new Array();
 function saveItem(item, inpatient) {
 	// first the region
 	var region = _.find(regionArray, function(rgn) {
-		return rgn.med_id == item.region;
+		return rgn.name == item.region;
 	});
 	if ( !region ) {
 		// not there, add it at the end and set regionId to the index
@@ -135,7 +143,7 @@ function saveItem(item, inpatient) {
 			, lat: null
 			, lng: null
 			, loc_from_zip: 1
-			, region: regionId
+			, region: region.med_id
 		};
 		providerArray.push(provider);
 	}
@@ -152,20 +160,22 @@ function saveItem(item, inpatient) {
 
 	// procedure list
 	var proc = _.find(region.procList, function(proc) {
-		return proc.internalTi == treatment.internalTi;
+		return proc.treatment == internalTi;
 	});
 	if ( proc ) {
 		// it's there.  add 'em
-		proc.totalNum += item.count;
-		proc.totalSubmitted += item.submitted * item.count;
-		proc.totalPaid += item.paid * item.count;
+		proc.total_num += item.count;
+		proc.total_submitted += item.submitted * item.count;
+		proc.total_paid += item.paid * item.count;
+		proc.provider_count++;
 	} else {
 		// new
-		proc = { internalTi: treatment.internalTi
+		proc = { treatment: internalTi
 			, region: region.med_id
-			, totalNum: item.count
-			, totalSubmitted: item.submitted * item.count
-			, totalPaid: item.paid * item.count
+			, provider_count: 1
+			, total_num: item.count
+			, total_submitted: item.submitted * item.count
+			, total_paid: item.paid * item.count
 		};
 		region.procList.push(proc);
 	}
@@ -180,7 +190,7 @@ function writeRegionTreatmentProvider() {
 		, [{callback: writeTreatment, paramsArray: treatmentArray, max: 20}]
 		, [{callback: writeProvider, paramsArray: providerArray, max: 9}]
 		, [{callback: writeItem, paramsArray: itemArray, max: 20}]
-		, [{callback: writeProcs, paramsArray: procArray, max: 20}]
+		, [{callback: writeProc, paramsArray: procArray, max: 20}]
 		, [finish]
 	];
 	var fc = new flowController.FlowController({ model: model
@@ -195,6 +205,7 @@ function writeRegion(model, region) {
 	var procList = region.procList;
 	procList.forEach(function(proc) {procArray.push(proc)});
 	delete region.procList;
+	if ( debugging ) { model._fc.done(); return; }
 	msh.addRecord(msh.tables.region, region, function() {
 		model._fc.done();
 	});
@@ -202,8 +213,9 @@ function writeRegion(model, region) {
 
 
 function writeProc(model, proc) {
-	proc['avgSubmitted'] = proc.totalSubmitted / proc.totalNum;
-	proc['avgPaid'] = proc.totalPaid / proc.totalNum;
+	proc['avg_submitted'] = proc.total_submitted / proc.total_num;
+	proc['avg_paid'] = proc.total_paid / proc.total_num;
+	if ( debugging ) { model._fc.done(); return; }
 	msh.addRecord(msh.tables.proc, proc, function() {
 		model._fc.done();
 	});
@@ -211,6 +223,7 @@ function writeProc(model, proc) {
 
 
 function writeTreatment(model, treatment) {
+	if ( debugging ) { model._fc.done(); return; }
 	msh.addRecord(msh.tables.treatment, treatment, function() {
 		model._fc.done();
 	});
@@ -218,6 +231,7 @@ function writeTreatment(model, treatment) {
 
 
 function writeItem(model, item) {
+	if ( debugging ) { model._fc.done(); return; }
 	msh.addRecord(msh.tables.item, item, function() {
 		model._fc.done();
 	});
@@ -225,6 +239,7 @@ function writeItem(model, item) {
 
 
 function writeProvider(model, provider) {
+	if ( debugging ) { model._fc.done(); return; }
 	placeInfo.placeInfoFromProvider(provider, function(lat, lng) {
 		if ( lat || lng ) {
 			provider.lat = lat;
@@ -249,11 +264,7 @@ function writeProvider(model, provider) {
 }
 
 
-// calculate all the interesting data
-function calculate(model) {
-}
-
-
 function finish(model) {
+	msh.closeConnection();
 	model._fc.done();
 }

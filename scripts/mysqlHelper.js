@@ -23,6 +23,18 @@ exports.tables = { provider: DBNAME + ".provider"
 };
 
 
+// close all connections.  don't do this unless you're really, really sure
+//	- there's no recovery
+exports.closeConnection() {
+	connection.end(function(err) {
+		if ( err ) console.log("Error closing connection: " + err);
+		pool.end(function (perr) {
+			if ( perr ) console.log("Error closing pool: " + perr);
+		});
+	});
+}
+
+
 // add a record one at a time using the connection
 // if there's a cb call it so they can get the id, if not just log n deal
 exports.addRecordSerial = function(table, data, cb, context) {
