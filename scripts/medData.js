@@ -250,7 +250,7 @@ function writeProvider(model, provider) {
 			});
 		} else {
 			// get it from the zip table
-	 		zipData.getZipInfo(item.pzip, function(zd) {
+	 		zipData.getZipInfo(provider.zip, function(zd) {
 	 			if ( zd ) {
 	 				provider.lat = zd.lat;
 	 				provider.lng = zd.lng;
@@ -265,7 +265,7 @@ function writeProvider(model, provider) {
 
 
 function finish(model) {
+	console.log("finished importing data");
 	msh.closeConnection();
 	model._fc.done();
-	console.log("finished importing data");
 }
