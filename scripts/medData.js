@@ -13,7 +13,6 @@ var _ = require('underscore')
 
 
 // for debugging
-var debugging = false;
 
 
 // load the medicare data db
