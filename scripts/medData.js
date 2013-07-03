@@ -13,6 +13,7 @@ var _ = require('underscore')
 
 
 // for debugging
+var debugging = true;
 
 
 // load the medicare data db
@@ -266,4 +267,5 @@ function writeProvider(model, provider) {
 function finish(model) {
 	msh.closeConnection();
 	model._fc.done();
+	console.log("finished importing data");
 }

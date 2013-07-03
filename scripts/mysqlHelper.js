@@ -26,6 +26,7 @@ exports.tables = { provider: DBNAME + ".provider"
 // close all connections.  don't do this unless you're really, really sure
 //	- there's no recovery
 exports.closeConnection = function () {
+	console.log("mysqlHelper - closing all connections");
 	connection.end(function(err) {
 		if ( err ) console.log("Error closing connection: " + err);
 		pool.end(function (perr) {
