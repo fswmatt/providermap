@@ -107,7 +107,12 @@ exports.findRecordWithOrder = function(table, data, order, cb, context) {
 			if (err) {
 				console.log("q: " + qstr + ", err: " + err);
 			} else {
-				console.log("found " + rows.length + " records.");
+				if ( 0 == rows.length ) {
+					console.log("q: " + qstr + ", data: " + JSON.stringify(data)
+							+ " found 0 records");
+				} else {
+					console.log("found " + rows.length + " records.");
+				}
 			}
 			// callback with the results
 			cb.call(context, err, rows, fields);
