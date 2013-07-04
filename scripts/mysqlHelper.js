@@ -52,6 +52,8 @@ exports.addRecordSerial = function(table, data, cb, context) {
 				cb.call(context, err, result);
 			}
 		});
+	} else {
+		cb.call(context, "No Connection");
 	}
 }
 
@@ -60,18 +62,23 @@ exports.addRecordSerial = function(table, data, cb, context) {
 // if there's a cb call it so they can get the id, if not just log n deal
 exports.addRecord = function(table, data, cb, context) {
 	pool.getConnection(function(err, conn) {
-		var qstr = "INSERT INTO " + table + " SET ?";
-		conn.query(qstr, data, function(err, result) {
-			if (err) {
-				console.log("q: " + qstr + ", err: " + err);
-			} else {
-				console.log("inserted record " + result.insertId + " into " + table);
-			}
-			conn.end();
-			if ( cb ) {
-				cb.call(context, err, result);
-			}
-		});
+		if ( !conn ) {
+			// houston - we have a problem
+			cb.call(context, err);
+		} else {
+			var qstr = "INSERT INTO " + table + " SET ?";
+			conn.query(qstr, data, function(err, result) {
+				if (err) {
+					console.log("q: " + qstr + ", err: " + err);
+				} else {
+					console.log("inserted record " + result.insertId + " into " + table);
+				}
+				conn.end();
+				if ( cb ) {
+					cb.call(context, err, result);
+				}
+			});
+		}
 	});
 }
 
@@ -80,18 +87,23 @@ exports.addRecord = function(table, data, cb, context) {
 // if there's a cb call it so they can get the id, if not just log n deal
 exports.bulkAdd = function(table, columns, data, cb, context) {
 	pool.getConnection(function(err, conn) {
-		var qstr = "INSERT INTO " + table + " (" + columns + ") VALUES ?";
-		conn.query(qstr, data, function(err, result) {
-			if (err) {
-				console.log("q: " + qstr + ", err: " + err);
-			} else {
-				console.log("inserted record " + result.insertId + " into " + table);
-			}
-			conn.end();
-			if ( cb ) {
-				cb.call(context, err, result);
-			}
-		});
+		if ( !conn ) {
+			// houston - we have a problem
+			cb.call(context, err);
+		} else {
+			var qstr = "INSERT INTO " + table + " (" + columns + ") VALUES ?";
+			conn.query(qstr, data, function(err, result) {
+				if (err) {
+					console.log("q: " + qstr + ", err: " + err);
+				} else {
+					console.log("inserted record " + result.insertId + " into " + table);
+				}
+				conn.end();
+				if ( cb ) {
+					cb.call(context, err, result);
+				}
+			});
+		}
 	});
 }
 
@@ -104,33 +116,38 @@ exports.findRecord = function(table, data, cb, context) {
 
 exports.findRecordWithOrder = function(table, data, order, cb, context) {
 	pool.getConnection(function(err, conn) {
-		var qstr = "SELECT * FROM " + table + "";
-		if ( data ) {
-			if ( typeof data === 'string' ) {
-				qstr += " WHERE " + data;
-				data = null;
-			} else {
-				qstr += " WHERE ?";
-			}
-		}
-		if ( order ) {
-			qstr += " ORDER BY " + order;
-		}
-		conn.query(qstr, data, function(err, rows, fields) {
-			conn.end();
-			if (err) {
-				console.log("q: " + qstr + ", err: " + err);
-			} else {
-				if ( 0 == rows.length ) {
-					console.log("q: " + qstr + ", data: " + JSON.stringify(data)
-							+ " found 0 records");
+		if ( !conn ) {
+			// houston - we have a problem
+			cb.call(context, err);
+		} else {
+			var qstr = "SELECT * FROM " + table + "";
+			if ( data ) {
+				if ( typeof data === 'string' ) {
+					qstr += " WHERE " + data;
+					data = null;
 				} else {
-					console.log("found " + rows.length + " records.");
+					qstr += " WHERE ?";
 				}
 			}
-			// callback with the results
-			cb.call(context, err, rows, fields);
-		});
+			if ( order ) {
+				qstr += " ORDER BY " + order;
+			}
+			conn.query(qstr, data, function(err, rows, fields) {
+				conn.end();
+				if (err) {
+					console.log("q: " + qstr + ", err: " + err);
+				} else {
+					if ( 0 == rows.length ) {
+						console.log("q: " + qstr + ", data: " + JSON.stringify(data)
+								+ " found 0 records");
+					} else {
+						console.log("found " + rows.length + " records.");
+					}
+				}
+				// callback with the results
+				cb.call(context, err, rows, fields);
+			});
+		}
 	});
 }
 
@@ -139,16 +156,21 @@ exports.findRecordWithOrder = function(table, data, order, cb, context) {
 //  DO NOT ABUSE OR MOCK
 exports.directExec = function(qstr, cb, context) {
 	pool.getConnection(function(err, conn) {
-		conn.query(qstr, null, function(err, rows, fields) {
-			conn.end();
-			if (err) {
-				console.log("q: " + qstr + ", err: " + err);
-			} else {
-				console.log("found " + rows.length + " records.");
-			}
-			// callback with the results
-			cb.call(context, err, rows, fields);
-		});
+		if ( !conn ) {
+			// houston - we have a problem
+			cb.call(context, err);
+		} else {
+			conn.query(qstr, null, function(err, rows, fields) {
+				conn.end();
+				if (err) {
+					console.log("q: " + qstr + ", err: " + err);
+				} else {
+					console.log("found " + rows.length + " records.");
+				}
+				// callback with the results
+				cb.call(context, err, rows, fields);
+			});
+		}
 	});
 }
 

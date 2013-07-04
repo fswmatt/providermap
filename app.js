@@ -36,8 +36,10 @@ app.get('/', function(req, res) {
 });
 app.get('/test', test.test);
 
+
 // the api
 app.get('/api/v0.1/getRegions', api.getRegionList);
+app.get('/api/v0.1/getFullRegionInfo/:region', api.getFullRegionInfo);
 app.get('/api/v0.1/getProvidersInRegion/:region', api.getProvidersInRegion);
 app.get('/api/v0.1/getProvidersInState/:state', api.getProvidersInState);
 app.get('/api/v0.1/getProvidersInBox/:north/:west/:south/:east', api.getProvidersInBox);

@@ -136,6 +136,9 @@ function resetMapToRegion(json) {
 		clearAllMarkers();
 		clearAccordion();
 
+		// set the markers
+		addProviderInfo(providers);
+
 		// move the map
 		var north = 0, south = 0, east = 0, west = 0;
 		providers.forEach(function(provider) {
@@ -148,9 +151,6 @@ function resetMapToRegion(json) {
 		var northEast = new google.maps.LatLng(north, east);
 		var bounds = new google.maps.LatLngBounds(southWest,northEast);
 		map.fitBounds(bounds);
-
-		// set the markers
-		addProviderInfo(providers);
 	}
 }
 
@@ -260,7 +260,10 @@ function onAccordionActivate(e, ui) {
 
 function onAccordionCreate(e, ui) {
 	if ( ui.header && ui.header[0] ) {
-		var newId = ui.header[0].id;
+		var index = Math.round((markers.length-1.5)/2);
+		var newId = markers[index].id
+		$("#left-col").accordion({active: index});
+//		var newId = ui.header[0].id;
 		showMarkerForId(newId);
 	}
 }

@@ -13,7 +13,7 @@ var _ = require('underscore')
 
 
 // for debugging
-var debugging = true;
+var debugging = false;
 
 
 // load the medicare data db
@@ -69,7 +69,7 @@ function loadDb(filename, inpatient, i) {
 
 
 var leaveAlone = ["AMI", "CC", "CC/MCC", "C.D.E", "FX", "G.I.", "II", "III", "IV",
-		"MCC", "O.R.", "RD", "SNF", "ST", "W/O"].sort();
+		"MCC", "O.R.", "OHSU", "P.O.", "PO", "RD", "SNF", "ST", "UMDNJ", "W/O"].sort();
 function fixCase(str) {
 	var strs = str.split(" ");
 	var newStr = "";
