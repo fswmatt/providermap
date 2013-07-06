@@ -40,9 +40,11 @@ function detectBrowser() {
 
 // show the location
 function createMap(position) {
+	var myRegion = getRegionForPosition(position);
 	var gLatLng = new google.maps.LatLng(position.coords.latitude,
 				position.coords.longitude);
 	// make a map
+	var locations
 	map = new google.maps.Map(document.getElementById("map-canvas"), {
 		zoom: 9,
 		center: gLatLng,
@@ -55,6 +57,32 @@ function createMap(position) {
 
 	// add listeners for bounds events
 	google.maps.event.addListener(map, "click", closeInfoWindow);
+
+	if ( myRegion ) {
+		changeRegionTo(myRegion.med_id);
+		$('#theSelector').val(myRegion.med_id);
+	}
+}
+
+
+// gets the closest region for the position
+function getRegionForPosition(pos) {
+	var regions;
+	if ( pos && regionJson ) {
+		regions = _.filter(regionJson, function(rgn) {
+			return ( pos.coords.latitude <= rgn.north
+				&& pos.coords.latitude >= rgn.south
+				&& pos.coords.longitude <= rgn.east
+				&& pos.coords.longitude >= rgn.west );
+		});
+		var smallestSize = 540;
+		var region;
+		regions.forEach(function (rgn) {
+			var size = (rgn.north - rgn.south) + (rgn.east - rgn.west);
+			if ( size < smallestSize ) region = rgn;
+		});
+		return region;
+	}
 }
 
 
@@ -113,15 +141,13 @@ function regionChanged(selector) {
 
 
 var currentRegion;
-var regionUrl = "/api/v0.1/getProvidersInRegion/"
+var regionUrl = "/api/v0.1/getFullRegionInfo/"
 function changeRegionTo(id) {
 	$.ajax({ url: regionUrl + id,
 		type: "GET",
 		dataType : "json",
 		success: function(json) {
-			currentRegion = _.find(regionJson, function(region) {
-				return region.med_id == id;
-			});
+			currentRegion = _.findWhere(regionJson, {med_id: parseInt(id)});
 			resetMapToRegion(json);
 		},
 
@@ -138,9 +164,11 @@ function changeRegionTo(id) {
 
 
 var providers = null;
+var procedures = null;
 function resetMapToRegion(json) {
 	if ( json && json.responseCode && json.responseCode.code == 200 ) {
-		providers = json.providers;
+		providers = json.results.providers;
+		procedures = json.results.procedures;
 
 		// kill the markers and accordion
 		clearAllMarkers();
@@ -163,11 +191,22 @@ function clearAccordion() {
 }
 
 
+var styleMap = [[0.9, "vl"], [0.95, "l"], [1.05, "n"], [1.1, "h"], [10000, "vh"]];
+function styleFromPct(pct) {
+	if ( pct ) {
+		var style = _.find(styleMap, function(st) {return pct < st[0];});
+		return style[1];
+	} else {
+		return "n";
+	}
+}
 function addProviderInfo(providers) {
 	if ( providers ) {
 		var ah = ""; // accordionHtml
 		providers.forEach(function(provider) {
-			var h = "<h3 id=" + provider.med_id + ">" + provider.name + "</h3><p>"
+			var style = styleFromPct(provider.avgPercentChargedFromRegion);
+			var h = "<h3 id=" + provider.med_id + " class=" + style + ">"
+						+ provider.name + "</h3><p>"
 						+ provider.street + "</br>" + provider.city + ", "
 						+ provider.state + "  " + provider.zip + "</p>";
 			// marker
@@ -251,10 +290,11 @@ function onAccordionActivate(e, ui) {
 		showMarkerForId(newId);
 
 		// scroll the list.  TODO: make this #%$@ing thing work
-		if ($(ui.newHeader).offset() != null) {
-			$.scrollTo($(ui.newHeader).offset().top);
+/*		if ($(ui.newHeader).offset() ) {
+			var top = $(ui.newHeader).offset().top;
+			$.scrollTo($(ui.newHeader));
 		}
-	}
+*/	}
 }
 
 

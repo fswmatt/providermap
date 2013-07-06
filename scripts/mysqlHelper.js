@@ -142,7 +142,7 @@ exports.findRecordExtrasWithOrder = function(table, data, order, extras, cb, con
 						console.log("q: " + qstr + ", data: " + JSON.stringify(data)
 								+ " found 0 records");
 					} else {
-						console.log("found " + rows.length + " records.");
+						console.log("q: " + qstr + " | found " + rows.length + " records.");
 					}
 				}
 				// callback with the results

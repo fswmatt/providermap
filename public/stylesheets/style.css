@@ -9,5 +9,10 @@ body { margin:0; padding:0; height:100%;}
 #left-col h3 { font-size: 1em; font-weight:500; }
 #left-col p { font-size: 0.75em; font-weight:300; }
 
+.vl { color: forestgreen; }
+.l { color: limegreen; }
+.h { color: crimson; }
+.vh { color: darkred; }
+
 .ui-accordion .ui-accordion-header { padding: .25em .25em .25em 1.5em; }
 .ui-accordion .ui-accordion-content { padding: .25em 1em;}

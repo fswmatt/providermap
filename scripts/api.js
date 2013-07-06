@@ -163,6 +163,9 @@ function getProcsForProvider(model, provider) {
 
 
 function sendProviderData(model) {
+	// sort the array first
+	model.providerArray = _.sortBy(model.providerArray, function(p) {return -p.lat});
+
 	// do some calculatin'
 	model.procs.forEach(function (proc) {
 		proc['percentPaid'] = proc.avg_paid / proc.avg_submitted;
@@ -174,7 +177,7 @@ function sendProviderData(model) {
 		var pPaidRegion = 0.0;
 		var count = 0.0;
 		provider.procedures.forEach(function (proc) {
-			var base = _.find(model.procs, function(p) {return p.treatment == proc.treatment});
+			var base = _.findWhere(model.procs, {treatment: proc.treatment});
 			var percentPaid = proc.paid / proc.submitted;
 			var percentChargedFromRegion = proc.submitted / base.avg_submitted;
 			var percentPaidFromRegion = proc.paid / base.avg_paid;
@@ -196,4 +199,5 @@ function sendProviderData(model) {
 		, providers: model.providerArray
 	};
 	rjh.returnSuccess(model.res, resp, 'results');
+	model._fc.done();
 }

@@ -69,7 +69,7 @@ function loadDb(filename, inpatient, i) {
 
 
 var leaveAlone = ["AMI", "CC", "CC/MCC", "C.D.E", "FX", "G.I.", "II", "III", "IV",
-		"MCC", "O.R.", "OHSU", "P.O.", "PO", "RD", "SNF", "ST", "UMDNJ", "W/O"].sort();
+		"MCC", "O.R.", "OHSU", "P.O.", "PO", "RD", "SNF", "UMDNJ", "W/O"].sort();
 function fixCase(str) {
 	var strs = str.split(" ");
 	var newStr = "";
@@ -97,9 +97,7 @@ var itemArray = new Array();
 // TODO: insert sorted instead of push().sort()
 function saveItem(item, inpatient) {
 	// first the region
-	var region = _.find(regionArray, function(rgn) {
-		return rgn.name == item.region;
-	});
+	var region = _.findWhere(regionArray, {name: item.region});
 	if ( !region ) {
 		// not there, add it at the end and set regionId to the index
 		var rgn = item.region.split(" ");
@@ -115,9 +113,7 @@ function saveItem(item, inpatient) {
 	var t = item.treatment.split(" ");
 	var ti = parseInt(t[0])
 	var internalTi = inpatient ? 10000+ti : ti;
-	var treatment = _.find(treatmentArray, function(tmt) {
-		return tmt.internal_id == internalTi;
-	});
+	var treatment = _.findWhere(treatmentArray, {internal_id: internalTi});
 	if ( !treatment ) {
 		// not there, add it
 		treatment = { med_id: ti
@@ -129,9 +125,7 @@ function saveItem(item, inpatient) {
 	}
 
 	// then the provider
-	var provider = _.find(providerArray, function(prv) {
-		return item.pid == prv.med_id;
-	});
+	var provider = _.findWhere(providerArray, {pid: prv.med_id});
 	if ( !provider ) {
 		// not there, add it
 		provider = { med_id: item.pid
@@ -159,9 +153,7 @@ function saveItem(item, inpatient) {
 	itemArray.push(info);
 
 	// procedure list
-	var proc = _.find(region.procList, function(proc) {
-		return proc.treatment == internalTi;
-	});
+	var proc = _.findWhere(region.procList, {treatment: internalTi});
 	if ( proc ) {
 		// it's there.  add 'em
 		proc.total_num += item.count;
