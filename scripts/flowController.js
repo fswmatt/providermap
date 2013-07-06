@@ -83,11 +83,11 @@ this.FlowController = function(params) {
 		var events;
 		do {
 			events = theEvents.shift();
-			if ( null == events ) {
+			if ( !events ) {
 				// empty param.  loser.
 				console.log("Empty array item in events.  Fix yer data!");
 			}
-		} while ( events == null );
+		} while ( !events );
 		theExecCount = getExecCount(events);
 		events.forEach(function(item) {
 			if ( item instanceof Function ) {
@@ -171,13 +171,9 @@ this.FlowController = function(params) {
 
 // and the rest of our constructor/initialization
 // 	do this at the end so everything else is set up before we go if we have to start
-	if ( null != params ) {
+	if ( params ) {
 		// copy the callback list
-		if ( null != params.callbacks ) {
-			theEvents = params.callbacks;
-		} else {
-			theEvents = new Array();
-		}
+		theEvents = params.callbacks ? params.callbacks : new Array();
 
 		// copy initial data to theModel
 		if ( null != params.model ) {
@@ -189,11 +185,31 @@ this.FlowController = function(params) {
 		}
 
 		// should we start now?
-		if ( null != params.startNow && params.startNow ) {
-			this.start();
-		}
+		if ( params.startNow ) this.start();
 	}
 };
+
+
+exports.doThisToThatAndWait = function(itemCb, items, passedInModel, cb) {
+	if ( passedInModel instanceof Function ) {
+		cb = passedInModel;
+		passedInModel = null;
+	}
+	var model = {};
+	if ( passedInModel ) model['origModel'] = passedInModel;
+	var callbacks = [ [{callback: itemCb, paramsArray: items, max: 10}]
+		, [{callback: finishUp, paramsArray: [cb]}] ];
+	var fc = new this.FlowController({ model: model
+		, callbacks: callbacks
+		, startNow: true
+	});
+}
+
+
+function finishUp(model, cb) {
+	model._fc.done();
+	cb.call();
+}
 
 
 // we do this a lot!

@@ -12,4 +12,6 @@ var medData = require('../scripts/medData')
 // zipData.loadZipData();
 
 // load the med data
-medData.loadFiles(0);
+// medData.loadFiles(0);
+
+medData.fillRegionBounds();

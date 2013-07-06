@@ -109,29 +109,30 @@ exports.bulkAdd = function(table, columns, data, cb, context) {
 
 
 
+// TODO: clean these three up by checking types
 exports.findRecord = function(table, data, cb, context) {
-	module.exports.findRecordWithOrder(table, data, null, cb, context);
+	module.exports.findRecordExtrasWithOrder(table, data, null, null, cb, context);
 }
 
 
 exports.findRecordWithOrder = function(table, data, order, cb, context) {
+	module.exports.findRecordExtrasWithOrder(table, data, order, null, cb, context);
+}
+
+
+exports.findRecordExtrasWithOrder = function(table, data, order, extras, cb, context) {
 	pool.getConnection(function(err, conn) {
 		if ( !conn ) {
 			// houston - we have a problem
 			cb.call(context, err);
 		} else {
-			var qstr = "SELECT * FROM " + table + "";
-			if ( data ) {
-				if ( typeof data === 'string' ) {
-					qstr += " WHERE " + data;
-					data = null;
-				} else {
-					qstr += " WHERE ?";
-				}
-			}
-			if ( order ) {
-				qstr += " ORDER BY " + order;
-			}
+			var qstr = "SELECT *";
+			if ( extras ) qstr += "," + extras;
+			qstr += " FROM " + table;
+			if ( data ) qstr += ( typeof data === 'string' )
+					? (" WHERE " + data)
+					: (" WHERE ?");
+			if ( order ) qstr += " ORDER BY " + order;
 			conn.query(qstr, data, function(err, rows, fields) {
 				conn.end();
 				if (err) {

@@ -103,27 +103,37 @@ function loadRegionDropdown(json) {
 }
 
 
-var regionUrl = "/api/v0.1/getProvidersInRegion/"
-// selected city changed
+// selected region changed
 function regionChanged(selector) {
-	if ( selector && selector.target && selector.target.value ) {
-		$.ajax({ url: regionUrl + selector.target.value,
-			type: "GET",
-			dataType : "json",
-			success: function(json) {
-				resetMapToRegion(json);
-			},
-
-			error: function( xhr, status ) {
-				div.innerHTML = "Region selector fill failed.";
-			},
-
-			complete: function( xhr, status ) {
-				$("#mapinfo").text("Region selector filled.");
-			}
-		});
+	if ( selector && selector.target ) {
+		changeRegionTo(selector.target.value);
 	}
 	return true;
+}
+
+
+var currentRegion;
+var regionUrl = "/api/v0.1/getProvidersInRegion/"
+function changeRegionTo(id) {
+	$.ajax({ url: regionUrl + id,
+		type: "GET",
+		dataType : "json",
+		success: function(json) {
+			currentRegion = _.find(regionJson, function(region) {
+				return region.med_id == id;
+			});
+			resetMapToRegion(json);
+		},
+
+		error: function( xhr, status ) {
+			currentRegion = null;
+			div.innerHTML = "Region selector fill failed.";
+		},
+
+		complete: function( xhr, status ) {
+			$("#mapinfo").text("Region selector filled.");
+		}
+	});
 }
 
 
@@ -138,19 +148,9 @@ function resetMapToRegion(json) {
 
 		// set the markers
 		addProviderInfo(providers);
-
-		// move the map
-		var north = 0, south = 0, east = 0, west = 0;
-		providers.forEach(function(provider) {
-			if ( !north || provider.lat > north ) north = provider.lat;
-			if ( !south || provider.lat < south ) south = provider.lat;
-			if ( !west || provider.lng < west ) west = provider.lng;
-			if ( !east || provider.lng > east ) east = provider.lng;
-		});
-		var southWest = new google.maps.LatLng(south, west);
-		var northEast = new google.maps.LatLng(north, east);
-		var bounds = new google.maps.LatLngBounds(southWest,northEast);
-		map.fitBounds(bounds);
+		map.fitBounds(new google.maps.LatLngBounds(
+				new google.maps.LatLng(currentRegion.south, currentRegion.west),
+				new google.maps.LatLng(currentRegion.north, currentRegion.east)));
 	}
 }
 

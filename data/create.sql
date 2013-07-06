@@ -26,6 +26,10 @@ CREATE TABLE `med_data`.`region` (
 	`med_id` INT NOT NULL,
 	`name` varchar(128) NOT NULL,
 	`state` varchar(2) NOT NULL,
+	`north` FLOAT NULL,
+	`south` FLOAT NULL,
+	`east` FLOAT NULL,
+	`west` FLOAT NULL,
 	PRIMARY KEY (`id`),
 	UNIQUE KEY `med_id_UNIQUE` (`med_id`),
 	INDEX (`state`)

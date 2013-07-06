@@ -186,11 +186,18 @@ function saveItem(item, inpatient) {
 function writeRegionTreatmentProvider() {
 	var model = {
 	};
-	var callbacks = [ [{callback: writeRegion, paramsArray: regionArray, max: 20}]
+	var callbacks = [
+	// main data
+		[{callback: calcAndWriteProc, paramsArray: procArray, max: 20}]
+		, [{callback: writeRegion, paramsArray: regionArray, max: 20}]
 		, [{callback: writeTreatment, paramsArray: treatmentArray, max: 20}]
 		, [{callback: writeProvider, paramsArray: providerArray, max: 9}]
 		, [{callback: writeItem, paramsArray: itemArray, max: 20}]
-		, [{callback: writeProc, paramsArray: procArray, max: 20}]
+	// region bounds
+		, [getRegions]
+		, [getBounds]
+		, [writeBounds]
+	// done!
 		, [finish]
 	];
 	var fc = new flowController.FlowController({ model: model
@@ -212,7 +219,7 @@ function writeRegion(model, region) {
 }
 
 
-function writeProc(model, proc) {
+function calcAndWriteProc(model, proc) {
 	proc['avg_submitted'] = proc.total_submitted / proc.total_num;
 	proc['avg_paid'] = proc.total_paid / proc.total_num;
 	if ( debugging ) { model._fc.done(); return; }
@@ -268,4 +275,70 @@ function finish(model) {
 	console.log("finished importing data");
 	msh.closeConnection();
 	model._fc.done();
+}
+
+
+exports.fillRegionBounds = function() {
+	var model = {
+		regionBounds: new Array()
+	};
+	var callbacks = [
+		[getRegions]
+		, [getBounds]
+		, [writeBounds]
+		, [finish]
+	];
+	var fc = new flowController.FlowController({ model: model
+		, callbacks: callbacks
+		, startNow: true
+	});
+}
+
+
+function getRegions(model) {
+	var q = "SELECT * FROM " + msh.tables.region;// + " WHERE north IS NULL";
+	msh.directExec(q, function(err, rows, fields) {
+		model['regions'] = rows;
+		model._fc.done();
+	});
+}
+
+
+function getBounds(model) {
+	flowController.doThisToThatAndWait(getBoundsForRegion, model.regions, model, function() {
+		model._fc.done();
+	});
+}
+
+
+function writeBounds(model) {
+	flowController.doThisToThatAndWait(writeRegionBounds, model.regionBounds, model, function() {
+		model._fc.done();
+	});
+}
+
+
+function getBoundsForRegion(model, region) {
+	var q = "SELECT MAX(lat) AS north, MIN(lat) AS south, MIN(lng) AS west, "
+			+ "MAX(lng) AS east FROM " + msh.tables.provider + " WHERE "
+			+ "region = " + region.med_id;
+	msh.directExec(q, function(err, rows, fields) {
+		if ( !err && rows ) {
+			var regionInfo = { id: region.med_id
+				, bounds: rows[0]
+			}
+			model.origModel.regionBounds.push(regionInfo);
+		}
+		model._fc.done();
+	});
+}
+
+
+function writeRegionBounds(model, regionInfo) {
+	var q = "UPDATE " + msh.tables.region + " SET north=" + regionInfo.bounds.north
+			+ ", south=" + regionInfo.bounds.south + ", east=" + regionInfo.bounds.east
+			+ ", west=" + regionInfo.bounds.west + " WHERE med_id = " + regionInfo.id;
+	msh.directExec(q, function(err, rows, fields) {
+		model._fc.done();
+	});
 }

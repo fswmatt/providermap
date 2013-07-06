@@ -72,6 +72,13 @@ exports.getProviderPricingInfo = function(req, res) {
 }
 
 
+function execQueryOrderedExtrasApiReturn(res, table, data, order, extras, title) {
+	msh.findRecordExtrasWithOrder(table, data, order, extras, function(err, rows, fields) {
+		returnResults(res, title, err, rows, fields);
+	});
+}
+
+
 function execQueryOrderedApiReturn(res, table, data, order, title) {
 	msh.findRecordWithOrder(table, data, order, function(err, rows, fields) {
 		returnResults(res, title, err, rows, fields);
@@ -156,6 +163,35 @@ function getProcsForProvider(model, provider) {
 
 
 function sendProviderData(model) {
+	// do some calculatin'
+	model.procs.forEach(function (proc) {
+		proc['percentPaid'] = proc.avg_paid / proc.avg_submitted;
+	});
+
+	model.providerArray.forEach(function (provider) {
+		var pPaid = 0.0;
+		var pChargedRegion = 0.0;
+		var pPaidRegion = 0.0;
+		var count = 0.0;
+		provider.procedures.forEach(function (proc) {
+			var base = _.find(model.procs, function(p) {return p.treatment == proc.treatment});
+			var percentPaid = proc.paid / proc.submitted;
+			var percentChargedFromRegion = proc.submitted / base.avg_submitted;
+			var percentPaidFromRegion = proc.paid / base.avg_paid;
+
+			proc['percentPaid'] = percentPaid;
+			proc['percentChargedFromRegion'] = percentChargedFromRegion;
+			proc['percentPaidFromRegion'] = percentPaidFromRegion;
+			pPaid += percentPaid;
+			pChargedRegion += percentChargedFromRegion;
+			pPaidRegion += percentPaidFromRegion;
+			count++;
+		});
+		provider['avgPercentPaid'] = pPaid / count;
+		provider['avgPercentChargedFromRegion'] = pChargedRegion / count;
+		provider['avgPercentPaidFromRegion'] = pPaidRegion / count;
+	});
+
 	var resp = { procedures: model.procs
 		, providers: model.providerArray
 	};
