@@ -6,12 +6,12 @@
     "start": "node app.js"
   },
   "dependencies": { "express": "3.1.1"
-	, "jade": "0.31.*"
-	, "mysql": "2.0.*"
-	, "request": "2.*"
-	, "util": "0.4.*"
-	, "underscore": "1.4.*"
-	, "csv": "0.3.*"
-	, "config": "0.4.*"
+	, "jade": "0.31.2"
+	, "mysql": "2.0.0-alpha8"
+	, "request": "2.21.0"
+	, "util": "0.4.9"
+	, "underscore": "1.4.4"
+	, "csv": "0.3.3"
+	, "config": "0.4.27"
   }
 }
