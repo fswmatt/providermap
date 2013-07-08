@@ -1,13 +1,42 @@
 providermap
 ===========
 
-medicare provider cost mapping mashup
+Medicare provider cost mapping mashup
 
 
 Introduction
 ------------
 
-providermap is
+Providermap is a mashup of Medicare provider data on a Google map.
+
+Providermap uses government-provided Medicare charge and payback data (included in
+the data/ folder, downloaded from
+http://www.cms.gov/Research-Statistics-Data-and-Systems/Files-for-Order/CostReports/Downloads/HHA94/HHA2012.zip )
+to create and populate a normalized database of:
+ regions
+ providers
+ treatments
+ line-items of (provider:treatment) info (the real data in the files)
+
+(I also load zipcodes from another government-provided file for worst-case geo info.)
+
+I calculate regional averages for the region as a whole and on a (procedure:region)
+pair as well for comparison purposes.
+
+The data's displayed by region via a region selector.  Providers are color coded
+based on their average percentage cost vs. their region.  The color coding is:
+	<90%	dark green
+	<95%	light green
+	<105%	black
+	<110%	light red
+	>110%	dark red
+That's all done on the front end in location.js
+	var styleMap = [[0.9, "vl"], [0.95, "l"], [1.05, "n"], [1.1, "h"], [10000, "vh"]];
+	function styleFromPct(pct) {
+		...
+	}
+
+
 
 Quick Start
 -----------
