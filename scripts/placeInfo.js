@@ -6,9 +6,8 @@
 
 var request = require('request')
 	, _ = require('underscore')
+	, globals = require('../config/globals')
 	;
-
-var googleKey = "AIzaSyCeonGX0eTAguv5yZiCa0Rh8IrpDbthvlk";
 
 
 exports.placeInfoFromProvider = function(provider, cb, context) {
@@ -16,7 +15,7 @@ exports.placeInfoFromProvider = function(provider, cb, context) {
 		+ "?query=" + encodeURIComponent(provider.street) + "+"
 		+ encodeURIComponent(provider.city) + "+" + provider.state
 		+ "&sensor=false"
-		+ "&key=" + googleKey;
+		+ "&key=" + globals.googleKey;
 	console.log("Getting uri " + reqUri);
 	request({uri: reqUri, timeout: 10000}, function(err, response, body) {
 		if (null != err || null == response || response.statusCode !== 200 ) {
@@ -35,7 +34,7 @@ exports.placeInfoFromProvider = function(provider, cb, context) {
 					+ "?query=" + encodeURIComponent(provider.name) + "+"
 					+ encodeURIComponent(provider.city) + "+" + provider.state
 					+ "&sensor=false"
-					+ "&key=" + googleKey;
+					+ "&key=" + globals.googleKey;
 				console.log("******* First time failed, trying again with uri " + reqUri);
 				request({uri: reqUri, timeout: 10000}, function(err, response, body) {
 					if (null != err || null == response || response.statusCode !== 200 ) {
