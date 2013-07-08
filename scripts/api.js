@@ -5,10 +5,9 @@
  */
 
 
-var fc = require('../scripts/flowController')
+var _ = require('underscore')
 	, msh = require('../scripts/mysqlHelper')
 	, rjh = require('../scripts/returnJsonHelper')
-	, _ = require('underscore')
 	, flowController = require('../scripts/flowController')
 	;
 

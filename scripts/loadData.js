@@ -9,9 +9,11 @@ var medData = require('../scripts/medData')
 	;
 
 // load the zip data then the med data
-// zipData.loadZipData();
+zipData.loadZipData();
 
 // load the med data
-// medData.loadFiles(0);
+medData.loadFiles(0);
 
+// fill in the region bounds.
+//	TODO: add this to loadFiles, separate for historic (and lame) reasons
 medData.fillRegionBounds();

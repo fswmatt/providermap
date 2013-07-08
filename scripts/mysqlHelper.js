@@ -3,23 +3,20 @@
  */
 
 var mysql = require('mysql')
+	, globals = require('../config/globals')
 	;
 
 
-var connInfo = { host: 'localhost'
-	, user: 'root'
-};
-var pool  = mysql.createPool(connInfo);
-var connection = mysql.createConnection(connInfo);
+var pool  = mysql.createPool(globals.CONFIG_CONN_INFO);
+var connection = mysql.createConnection(globals.CONFIG_CONN_INFO);
 
 
-var DBNAME = "med_data";
-exports.tables = { provider: DBNAME + ".provider"
-	, item: DBNAME + ".items"
-	, region: DBNAME + ".region"
-	, treatment: DBNAME + ".treatment"
-	, zip: DBNAME + ".zip"
-	, proc: DBNAME + ".proc"
+exports.tables = { provider: globals.DB_NAME + ".provider"
+	, item: globals.DB_NAME + ".items"
+	, region: globals.DB_NAME + ".region"
+	, treatment: globals.DB_NAME + ".treatment"
+	, zip: globals.DB_NAME + ".zip"
+	, proc: globals.DB_NAME + ".proc"
 };
 
 
@@ -189,7 +186,7 @@ function handleDisconnect(connection) {
 		}
 
 		console.log('Re-connecting lost connection: ' + err.stack);
-		connection = mysql.createConnection(connInfo);
+		connection = mysql.createConnection(globals.MYSQL_CONN_INFO);
 		handleDisconnect(connection);
 		connection.connect();
 	});

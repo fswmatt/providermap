@@ -6,7 +6,6 @@
 
 var request = require('request')
 	, _ = require('underscore')
-	, flowController = require('../scripts/flowController')
 	;
 
 var googleKey = "AIzaSyCeonGX0eTAguv5yZiCa0Rh8IrpDbthvlk";

@@ -69,7 +69,7 @@ function loadDb(filename, inpatient, i) {
 
 
 var leaveAlone = ["AMI", "CC", "CC/MCC", "C.D.E", "FX", "G.I.", "II", "III", "IV",
-		"MCC", "O.R.", "OHSU", "P.O.", "PO", "RD", "SNF", "UMDNJ", "W/O"].sort();
+		"LLC", "MCC", "O.R.", "OHSU", "P.O.", "PO", "RD", "SNF", "UMDNJ", "W/O"].sort();
 function fixCase(str) {
 	var strs = str.split(" ");
 	var newStr = "";
